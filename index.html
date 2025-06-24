@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temple by Region</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #temple.templeall {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><radialGradient id="temple-bg" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:%23f4e6d2;stop-opacity:1" /><stop offset="100%" style="stop-color:%23d4c5a9;stop-opacity:1" /></radialGradient><pattern id="temple-pattern" patternUnits="userSpaceOnUse" width="40" height="40"><rect width="40" height="40" fill="url(%23temple-bg)"/><circle cx="20" cy="20" r="15" fill="%23c4a373" opacity="0.3"/><path d="M20 5L30 15L20 25L10 15Z" fill="%23b8956a" opacity="0.5"/></pattern></defs><rect width="400" height="400" fill="url(%23temple-pattern)"/></svg>');
+            background-size: 100px 100px;
+            background-attachment: fixed;
+            padding: 60px 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: #8B4513;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #A0522D;
+            font-style: italic;
+        }
+
+        .container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 20px;
+        }
+
+        .gallery.col-2 #watthai.wat { flex: 0 0 calc(50% - 10px); }
+        .gallery.col-3 #watthai.wat { flex: 0 0 calc(33.333% - 14px); }
+        .gallery.col-4 #watthai.wat { flex: 0 0 calc(25% - 15px); }
+
+        #watthai.wat {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #watthai.wat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        #imagewatthai.imagewatthai2 {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.3s ease;
+        }
+
+        #watthai.wat:hover #imagewatthai.imagewatthai2 {
+            transform: scale(1.05);
+        }
+
+        .temple-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            backdrop-filter: blur(3px);
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        #watthai.wat:hover .temple-overlay {
+            background: rgba(0,0,0,0.9);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .temple-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            margin-bottom: 8px;
+            color: #FFD700;
+        }
+
+        .temple-location {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: rgba(139, 69, 19, 0.4);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(139, 69, 19, 0.6);
+        }
+
+        .dot:hover {
+            background-color: rgba(139, 69, 19, 0.6);
+            transform: scale(1.1);
+        }
+
+        .dot.active {
+            background-color: #8B4513;
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.8);
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .control-group {
+            display: inline-block;
+            margin: 0 25px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #8B4513;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        select, button {
+            background: linear-gradient(145deg, #f4e4c1, #e6d4a7);
+            border: 2px solid #8B4513;
+            border-radius: 10px;
+            padding: 12px 18px;
+            color: #8B4513;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            font-size: 1rem;
+        }
+
+        select:hover, button:hover {
+            background: linear-gradient(145deg, #e6d4a7, #d4c5a9);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .autoplay-on {
+            background: linear-gradient(145deg, #90EE90, #7FDD7F) !important;
+            color: #2F4F2F !important;
+            border-color: #2F4F2F !important;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .control-group {
+                margin: 10px 0;
+            }
+            
+            .gallery.col-4 #watthai.wat { flex: 0 0 calc(50% - 10px); }
+            .gallery.col-3 #watthai.wat { flex: 0 0 calc(50% - 10px); }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .gallery.col-4 #watthai.wat,
+            .gallery.col-3 #watthai.wat,
+            .gallery.col-2 #watthai.wat {
+                flex: 0 0 100%;
+            }
+            
+            .gallery {
+                gap: 15px;
+            }
+            
+            #temple.templeall {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="temple" class="templeall">
+        <div class="header">
+            <h1 class="title">TEMPLE BY REGION</h1>
+            <p class="subtitle">ค้นหาวัดยอดความภูมิภาค</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="columnSelect">Columns Display:</label>
+                <select id="columnSelect">
+                    <option value="2">2 Columns</option>
+                    <option value="3" selected>3 Columns</option>
+                    <option value="4">4 Columns</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="autoplayBtn">Auto Play:</label>
+                <button id="autoplayBtn">OFF</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="gallery col-3" id="gallery">
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-1.jpg" alt="Northern Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคเหนือ</div>
+                        <div class="temple-location">Northern Region</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-2.jpg" alt="Central Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคกลาง</div>
+                        <div class="temple-location">Central Region</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-3.jpg" alt="Eastern Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคตะวันออก</div>
+                        <div class="temple-location">Eastern Region</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-4.jpg" alt="Western Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคตะวันตก</div>
+                        <div class="temple-location">Western Region</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-5.jpg" alt="Southern Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคใต้</div>
+                        <div class="temple-location">Southern Region</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-6.jpg" alt="Northeast Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">ภาคตะวันออก</div>
+                        <div class="temple-location">เฉียงเหนือ</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-7.jpg" alt="Bangkok Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">กรุงเทพฯ</div>
+                        <div class="temple-location">Bangkok</div>
+                    </div>
+                </div>
+                <div id="watthai" class="wat">
+                    <img src="/pic/pic-8.jpg" alt="Ancient Temple" id="imagewatthai" class="imagewatthai2">
+                    <div class="temple-overlay">
+                        <div class="temple-name">วัดโบราณ</div>
+                        <div class="temple-location">Ancient Temple</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let autoplayInterval = null;
+        let isAutoplay = false;
+        let currentColumns = 3;
+
+        const gallery = document.getElementById('gallery');
+        const columnSelect = document.getElementById('columnSelect');
+        const autoplayBtn = document.getElementById('autoplayBtn');
+        const temples = document.querySelectorAll('#watthai.wat');
+
+        // Update gallery display
+        function updateGallery() {
+            gallery.className = `gallery col-${currentColumns}`;
+            const itemsPerSlide = currentColumns;
+            const totalSlides = Math.ceil(temples.length / itemsPerSlide);
+            
+            // Update pagination
+            const paginationContainer = document.querySelector('.pagination');
+            paginationContainer.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.className = `dot ${i === currentSlide ? 'active' : ''}`;
+                dot.setAttribute('data-slide', i);
+                dot.addEventListener('click', () => goToSlide(i));
+                paginationContainer.appendChild(dot);
+            }
+            
+            // Calculate slide position with gap consideration
+            const slideWidth = 100 / itemsPerSlide;
+            const translateX = -(currentSlide * 100);
+            gallery.style.transform = `translateX(${translateX}%)`;
+        }
+
+        // Go to specific slide
+        function goToSlide(slideIndex) {
+            const itemsPerSlide = currentColumns;
+            const totalSlides = Math.ceil(temples.length / itemsPerSlide);
+            
+            currentSlide = slideIndex;
+            if (currentSlide >= totalSlides) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = totalSlides - 1;
+            
+            updateGallery();
+        }
+
+        // Next slide
+        function nextSlide() {
+            const itemsPerSlide = currentColumns;
+            const totalSlides = Math.ceil(temples.length / itemsPerSlide);
+            goToSlide((currentSlide + 1) % totalSlides);
+        }
+
+        // Toggle autoplay
+        function toggleAutoplay() {
+            if (isAutoplay) {
+                clearInterval(autoplayInterval);
+                autoplayBtn.textContent = 'OFF';
+                autoplayBtn.classList.remove('autoplay-on');
+                isAutoplay = false;
+            } else {
+                autoplayInterval = setInterval(nextSlide, 4000);
+                autoplayBtn.textContent = 'ON';
+                autoplayBtn.classList.add('autoplay-on');
+                isAutoplay = true;
+            }
+        }
+
+        // Event listeners
+        columnSelect.addEventListener('change', (e) => {
+            currentColumns = parseInt(e.target.value);
+            currentSlide = 0; // Reset to first slide
+            updateGallery();
+        });
+
+        autoplayBtn.addEventListener('click', toggleAutoplay);
+
+        // Touch/swipe support for mobile
+        let startX = 0;
+        let endX = 0;
+
+        gallery.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+
+        gallery.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            const deltaX = startX - endX;
+            
+            if (Math.abs(deltaX) > 50) { // Minimum swipe distance
+                if (deltaX > 0) {
+                    nextSlide();
+                } else {
+                    const itemsPerSlide = currentColumns;
+                    const totalSlides = Math.ceil(temples.length / itemsPerSlide);
+                    goToSlide(currentSlide - 1 < 0 ? totalSlides - 1 : currentSlide - 1);
+                }
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                const itemsPerSlide = currentColumns;
+                const totalSlides = Math.ceil(temples.length / itemsPerSlide);
+                goToSlide(currentSlide - 1 < 0 ? totalSlides - 1 : currentSlide - 1);
+            }
+        });
+
+        // Initialize
+        updateGallery();
+    </script>
+</body>
+</html>
